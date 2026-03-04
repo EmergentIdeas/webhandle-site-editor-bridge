@@ -1,0 +1,28 @@
+__::start__
+<div>
+	<p> Site Editor Bridge</p>
+</div>
+
+<script type="module">
+	
+	import {siteEditorBridge} from "@webhandle/site-editor-bridge"
+	
+	console.log(siteEditorBridge)
+	
+	let info = await siteEditorBridge.resourceTypes.pages.getFullFileInfo('')
+	// console.log(info)
+	
+	info = await siteEditorBridge.resourceTypes.views.getFullFileInfo('')
+	// console.log(info)
+	
+	
+	try {
+		let mod = await import("@webhandle/site-editor-bridge/page-render-spec")
+		let spec = mod.default
+		console.log(spec)
+		window.spec = spec
+	}
+	catch(e) { }
+
+</script>
+__::end__
