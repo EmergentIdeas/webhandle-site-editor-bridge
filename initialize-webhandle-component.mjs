@@ -48,7 +48,8 @@ initializeWebhandleComponent.setup = async function (webhandle, config) {
 
 	// Set up a router for each of the resource types
 	for (let resourceType of Object.values(config.resourceTypes)) {
-		let filePath = path.join(initializeWebhandleComponent.componentDir, resourceType.relativeDirectory)
+		console.log(webhandle.projectRoot)
+		let filePath = path.join(webhandle.projectRoot, resourceType.relativeDirectory)
 
 		let router = webhandle.createRouter()
 		router.use((req, res, next) => {
