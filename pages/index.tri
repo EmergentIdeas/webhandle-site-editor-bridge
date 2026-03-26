@@ -10,10 +10,10 @@ __::start__
 	console.log(siteEditorBridge)
 	
 	let info = await siteEditorBridge.resourceTypes.pages.getFullFileInfo('')
-	// console.log(info)
+	console.log(info)
 	
 	info = await siteEditorBridge.resourceTypes.views.getFullFileInfo('')
-	// console.log(info)
+	console.log(info)
 	
 	
 	try {
@@ -21,6 +21,9 @@ __::start__
 		let spec = mod.default
 		console.log(spec)
 		window.spec = spec
+		
+		let nodes = await siteEditorBridge.services.pages.createPageTreeOptions()
+		console.log(nodes)
 	}
 	catch(e) { }
 

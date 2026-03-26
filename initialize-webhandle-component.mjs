@@ -5,6 +5,11 @@ import FileSinkServer from 'file-sink-server'
 import FileSink from 'file-sink'
 import fileSinkRemoteHttpSetup from "file-sink-remote-http/initialize-webhandle-component.mjs"
 import createRequireGroupMembership from "@webhandle/users-data/middleware/create-require-group-membership.mjs"
+import ServiceServer from "@webhandle/proxied-object-http-client"
+import replaceDoubleUnderscores from "./lib/replace-double-underscores.mjs"
+import replaceTemplateContent from "./lib/replace-template-content.mjs"
+import PagesService from "./lib/pages-service.mjs"
+import setupProxyObjects from "@webhandle/proxied-object-http-client/initialize-webhandle-component.mjs"
 
 let initializeWebhandleComponent = createInitializeWebhandleComponent()
 
@@ -34,6 +39,20 @@ initializeWebhandleComponent.defaultConfig = {
 
 		}
 	}
+	, serviceTypes: {
+		pages: {
+			serverEndpointUrl: "/@webhandle/site-editor-bridge/services/pages"
+			, editableContentPostProcessors: [
+				replaceDoubleUnderscores
+				, replaceTemplateContent
+
+			]
+			, pagePropertiesPrerun: [
+
+			]
+		}
+
+	}
 	, authorization: createRequireGroupMembership("administrators")
 	, publicFilesPrefix: "/@webhandle/site-editor-bridge/files"
 	, provideResources: true
@@ -42,7 +61,8 @@ initializeWebhandleComponent.defaultConfig = {
 initializeWebhandleComponent.setup = async function (webhandle, config) {
 	let manager = new ComponentManager()
 	manager.config = config
-	
+
+	let managerProxyObjects = await setupProxyObjects(webhandle)
 	// Make sure the remote file server code gets on the page
 	let fileSinkRemoteHttpManager = await fileSinkRemoteHttpSetup(webhandle)
 
@@ -55,11 +75,26 @@ initializeWebhandleComponent.setup = async function (webhandle, config) {
 			return config.authorization(req, res, next)
 		})
 		
-		let sinkServer = new FileSinkServer(new FileSink(filePath))
+		let sink = new FileSink(filePath)
+		manager.sinks[resourceType.relativeDirectory] = sink
+		let sinkServer = new FileSinkServer(sink)
 		sinkServer.addToRouter(router)
 		webhandle.routers.primary.use(resourceType.serverEndpointUrl, router)
 	}
-	
+
+	let pagesServiceRouter = webhandle.createRouter()
+	pagesServiceRouter.use((req, res, next) => {
+		return config.authorization(req, res, next)
+	})
+	let pagesService = new PagesService({
+		pagesSink: manager.sinks.pages
+	})
+	manager.services.pages = pagesService
+	let pagesServiceServer = new ServiceServer(pagesService, {
+	})
+	pagesServiceServer.addToRouter(pagesServiceRouter)
+	webhandle.routers.primary.use(config.serviceTypes.pages.serverEndpointUrl, pagesServiceRouter)
+
 
 	// Allow access to the bridge code
 	let filePath = path.join(initializeWebhandleComponent.componentDir, "public")
@@ -73,10 +108,13 @@ initializeWebhandleComponent.setup = async function (webhandle, config) {
 			}
 		)
 	)
-	
-	
+
+
 	// Setup bridge config and bride code
 	manager.addExternalResources = (externalResourceManager) => {
+		managerProxyObjects.addExternalResources(externalResourceManager)
+		fileSinkRemoteHttpManager.addExternalResources(externalResourceManager)
+
 		let resource = {
 			mimeType: 'application/javascript'
 			, name: '@webhandle/site-editor-bridge/configuration'
@@ -84,6 +122,11 @@ initializeWebhandleComponent.setup = async function (webhandle, config) {
 			, cachable: webhandle.development ? false : true
 			, data: {
 				resourceTypes: config.resourceTypes
+				, serviceTypes: {
+					pages: {
+						serverEndpointUrl: config.serviceTypes.pages.serverEndpointUrl
+					}
+				}
 			}
 		}
 		externalResourceManager.provideResource(resource)
@@ -100,9 +143,9 @@ initializeWebhandleComponent.setup = async function (webhandle, config) {
 
 	// Add the bridge objects if the user will have access to them
 	webhandle.routers.preDynamic.use((req, res, next) => {
-		if(config.provideResources) {
+		if (config.provideResources) {
 			config.authorization(req, res, (err) => {
-				if(!err) {
+				if (!err) {
 					// We have a valid user, so we'll add the config to the page.
 					manager.addExternalResources(res.locals.externalResourceManager)
 				}
@@ -113,14 +156,14 @@ initializeWebhandleComponent.setup = async function (webhandle, config) {
 			next()
 		}
 	})
-	
+
 	// Add the page server render spec
-	if(webhandle.pageServer) {
+	if (webhandle.pageServer) {
 		webhandle.pageServer.preRun.push((req, res, next) => {
-			if(config.provideResources) {
-				if(req.renderSpec) {
+			if (config.provideResources) {
+				if (req.renderSpec) {
 					return config.authorization(req, res, (err) => {
-						if(!err) {
+						if (!err) {
 							// We have a valid user, so we'll add the config to the page.
 							let resource = {
 								mimeType: 'application/javascript'
