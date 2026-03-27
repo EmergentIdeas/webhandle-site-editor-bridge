@@ -1,6 +1,6 @@
 {
 	"name": "@webhandle/site-editor-bridge",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"description": "",
 	"main": "initialize-webhandle-component.mjs",
 	"scripts": {
