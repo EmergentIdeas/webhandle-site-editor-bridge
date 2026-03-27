@@ -4,8 +4,8 @@
 	"description": "",
 	"main": "initialize-webhandle-component.mjs",
 	"scripts": {
-		"test": "node ./test/page-service-test.mjs"
-		, "start": "export webhandleConfigFile=./conf/test.json; run-webhandle-dev ./test/start-server.mjs"
+		"test": "node ./test/page-service-test.mjs",
+		"start": "export webhandleConfigFile=./conf/test.json; run-webhandle-dev ./test/start-server.mjs"
 	},
 	"repository": {
 		"type": "git",
@@ -21,7 +21,7 @@
 	"homepage": "https://github.com/EmergentIdeas/webhandle-site-editor-bridge#readme",
 	"dependencies": {
 		"@webhandle/initialize-webhandle-component": "^1.0.2",
-		"@webhandle/proxied-object-http-client": "^1.0.0",
+		"@webhandle/proxied-object-http-client": "^1.0.3",
 		"@webhandle/users-data": "^1.0.0",
 		"cheerio": "^1.2.0",
 		"file-sink": "^1.0.15",
