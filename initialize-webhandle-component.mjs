@@ -88,6 +88,7 @@ initializeWebhandleComponent.setup = async function (webhandle, config) {
 	})
 	let pagesService = new PagesService({
 		pagesSink: manager.sinks.pages
+		, editableContentPostProcessors: config.serviceTypes.pages.editableContentPostProcessors
 	})
 	manager.services.pages = pagesService
 	let pagesServiceServer = new ServiceServer(pagesService, {

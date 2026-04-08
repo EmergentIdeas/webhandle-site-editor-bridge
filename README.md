@@ -43,6 +43,19 @@ Options for these are:
 
 			}
 		}
+		, "serviceTypes": {
+			"pages": {
+				"serverEndpointUrl": "/@webhandle/site-editor-bridge/services/pages"
+				, "editableContentPostProcessors": [
+					replaceDoubleUnderscores
+					, replaceTemplateContent
+
+				]
+				, "pagePropertiesPrerun": [
+
+				]
+			}
+		}
 		, "authorization": createRequireGroupMembership("administrators")
 		, "publicFilesPrefix": "/@webhandle/site-editor-bridge/files"
 		, "provideResources": true
@@ -74,6 +87,8 @@ import {siteEditorBridge} from "@webhandle/site-editor-bridge"
 
 let info = await siteEditorBridge.resourceTypes.pages.getFullFileInfo('')
 info = await siteEditorBridge.resourceTypes.views.getFullFileInfo('')
+
+let pagesService = siteEditorBridge.services.pages
 ```
 
 You can also get information about the page rendered. Using the import function is safer, because in many cases,
